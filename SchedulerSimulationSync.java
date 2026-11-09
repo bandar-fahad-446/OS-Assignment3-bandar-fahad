@@ -301,7 +301,7 @@ public class SchedulerSimulationSync {
     public static void main(String[] args) {
         // ⚠️ IMPORTANT: Put your student ID here to seed the random number generator
         // This makes your output unique to you - DO NOT forget to change this!
-        int studentID = 123456789;  // ← CHANGE THIS TO YOUR ACTUAL STUDENT ID
+        long studentID = 4465440011;  // ← CHANGE THIS TO YOUR ACTUAL STUDENT ID
 
         Random random = new Random(studentID);
 
@@ -378,7 +378,7 @@ public class SchedulerSimulationSync {
         }
     }
 
-    private static void printHeader(int studentID, int numProcesses, int timeQuantum, int numCPUs) {
+    private static void printHeader(long studentID, int numProcesses, int timeQuantum, int numCPUs) {
         String line = "═".repeat(87);
         System.out.println("\n" + Colors.BOLD + Colors.BRIGHT_CYAN + "╔" + line + "╗" + Colors.RESET);
         System.out.println(Colors.BOLD + Colors.BRIGHT_CYAN + "║" + Colors.RESET + Colors.BG_BLUE + Colors.BRIGHT_WHITE + Colors.BOLD +
