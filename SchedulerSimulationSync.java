@@ -1,10 +1,11 @@
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Random;
-// TODO (Feature 1 and Feature 2): import java.util.concurrent.locks.ReentrantLock;
+
+import java.util.concurrent.locks.ReentrantLock; // الميزه الاولى
 // TODO (Feature 3):               import java.util.concurrent.Semaphore;
 
 // ANSI Color Codes for enhanced terminal output (same as Assignment 1)
@@ -74,7 +75,7 @@ class SharedStats {
         // TODO Feature 2: protect this critical section
         int tmp = completedProcessCount;
         RaceWindow.pause();
-        completedProcessCount = tmp + 1;
+        completedProcessCount = tmp + 1; 
     }
 
     public static void addServiceTime(int ms) {
@@ -108,16 +109,20 @@ class ReadyQueue {
     private final LinkedList<Thread> list = new LinkedList<>();   // FIFO queue of threads
     private final Map<Thread, Process> map = new HashMap<>();     // thread -> process (same idea as Assignment 1)
 
-    // TODO Feature 1: declare the lock protecting `list` and `map` here
+    private final ReentrantLock qLock = new ReentrantLock();  // الميزة الاولى
 
     // TODO Feature 3: declare the counting semaphore that counts the processes waiting in the ready queue here
 
     // Add a process to the ready queue (new process, or a process that did not finish its quantum)
     public void add(Process process) {
-        // TODO Feature 1: protect this critical section
         Thread thread = new Thread(process);
-        list.add(thread);
-        map.put(thread, process);
+        qLock.lock();  // الميزة الاولى
+        try {
+            list.add(thread);
+            map.put(thread, process);
+        } finally {
+            qLock.unlock();
+        }
 
         // TODO Feature 3: signal that one more process is available in the queue
 
@@ -129,30 +134,42 @@ class ReadyQueue {
 
     // Remove and return the thread at the head of the queue (or null if the queue is empty)
     public Thread poll() {
-        // TODO Feature 1: protect this critical section
-        if (list.isEmpty()) {
-            return null;
+        qLock.lock();  // الميزة الاولى
+        try {
+            if (list.isEmpty()) {
+                return null;
+            }
+            Thread head = list.getFirst();      // 1) read the head of the queue
+            RaceWindow.pause();                 //    <- another CPU can read the SAME head here
+            list.removeFirst();                 // 2) remove the head (it may be a different thread by now!)
+            return head;
+        } finally {
+            qLock.unlock();
         }
-        Thread head = list.getFirst();      // 1) read the head of the queue
-        RaceWindow.pause();                 //    <- another CPU can read the SAME head here
-        list.removeFirst();                 // 2) remove the head (it may be a different thread by now!)
-        return head;
     }
 
     public Process processOf(Thread thread) {
-        // TODO Feature 1: protect this access
-        return map.get(thread);
+        qLock.lock();  // الميزة الاولى
+        try {
+            return map.get(thread);
+        } finally {
+            qLock.unlock();
+        }
     }
 
     // Names of the processes currently waiting in the queue (used to display the ready queue)
     public String snapshot() {
-        // TODO Feature 1: protect this critical section
-        StringBuilder sb = new StringBuilder();
-        for (Thread t : list) {
-            if (sb.length() > 0) sb.append(" → ");
-            sb.append(map.get(t).getName());
+        qLock.lock();  // الميزة الاولى
+        try {
+            StringBuilder sb = new StringBuilder();
+            for (Thread t : list) {
+                if (sb.length() > 0) sb.append(" → ");
+                sb.append(map.get(t).getName());
+            }
+            return sb.length() == 0 ? "empty" : sb.toString();
+        } finally {
+            qLock.unlock();
         }
-        return sb.length() == 0 ? "empty" : sb.toString();
     }
 }
 
@@ -301,7 +318,7 @@ public class SchedulerSimulationSync {
     public static void main(String[] args) {
         // ⚠️ IMPORTANT: Put your student ID here to seed the random number generator
         // This makes your output unique to you - DO NOT forget to change this!
-        long studentID = 4465440011;  // ← CHANGE THIS TO YOUR ACTUAL STUDENT ID
+        int studentID = 446540011;  // ← CHANGE THIS TO YOUR ACTUAL STUDENT ID
 
         Random random = new Random(studentID);
 
@@ -378,7 +395,7 @@ public class SchedulerSimulationSync {
         }
     }
 
-    private static void printHeader(long studentID, int numProcesses, int timeQuantum, int numCPUs) {
+    private static void printHeader(int studentID, int numProcesses, int timeQuantum, int numCPUs) {
         String line = "═".repeat(87);
         System.out.println("\n" + Colors.BOLD + Colors.BRIGHT_CYAN + "╔" + line + "╗" + Colors.RESET);
         System.out.println(Colors.BOLD + Colors.BRIGHT_CYAN + "║" + Colors.RESET + Colors.BG_BLUE + Colors.BRIGHT_WHITE + Colors.BOLD +
