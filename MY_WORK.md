@@ -342,20 +342,30 @@ A ticket website can also use a lock to stop two people from booking the same se
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+Both CPUs picked P1 in the starter run, which recorded 24 of 25 context switches and completed 12 of 13 processes. It reported 37813 ms instead of 38194 ms and checked an empty queue 897 times instead of zero. Even without `RaceWindow.pause()` the operating system can switch threads between a read and a write, so the bug can be hard to repeat.
 
 Verification block of the **original starter**:
 ```
-[Paste the verification block (or the exception/watchdog message) of the starter here]
+═══ VERIFICATION (expected values are computed from YOUR seed) ═══
+  Context switches (quanta executed)     expected ٢٥       observed ٢٤       ✘ MISMATCH
+  Completed processes                    expected ١٣       observed ١٢       ✘ MISMATCH
+  Total service time (ms)                expected ٣٨١٩٤    observed ٣٧٨١٣    ✘ MISMATCH
+  Busy-waiting polls (must be 0)         expected ٠        observed ٨٩٧      ✘ MISMATCH
+  ✘ At least one check failed (see the ✘ lines above): a race condition or busy waiting is still present.
 ```
 
 Verification block of **my final version**:
 ```
-[Paste the verification block of your final version here (all lines ✔)]
+═══ VERIFICATION (expected values are computed from YOUR seed) ═══
+  Context switches (quanta executed)     expected ٢٥       observed ٢٥       ✔
+  Completed processes                    expected ١٣       observed ١٣       ✔
+  Total service time (ms)                expected ٣٨١٩٤    observed ٣٨١٩٤    ✔
+  Busy-waiting polls (must be 0)         expected ٠        observed ٠        ✔
+  ✔ All shared values are consistent.
 ```
 
 **Explanation of the timeline:**
-[Explain the lost update step by step.]
+In one possible order CPU-1 reads `contextSwitchCount` as 8 and pauses in `RaceWindow.pause()` while CPU-2 also reads 8 and pauses. CPU-1 writes 9 and then CPU-2 writes 9, so one increment is lost.
 
 ## Question 2: Critical Sections and Lock Granularity
 
@@ -365,12 +375,16 @@ Verification block of **my final version**:
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+Each mutex gives one thread at a time access to its shared data, and `finally` releases it so another thread can make progress. I used one `statLock` for all three statistics to keep their reads and updates simple. This means two updates to different counters can still wait for each other. The separate `qLock` lets one worker use the queue while another updates the statistics. Both locks use the default nonfair setting, so a new thread can get a lock before a waiting thread and bounded waiting is not guaranteed.
 
 | Critical section (variable / method) | Lock used | Why it needs protection |
 |---|---|---|
-| [e.g., `ReadyQueue.poll()`] | [lock name] | [reason] |
-| [...] | [...] | [...] |
+| `ReadyQueue.add()` and `ReadyQueue.poll()` | `qLock` | Keep additions and removals from overlapping |
+| `ReadyQueue.processOf()` and `ReadyQueue.snapshot()` | `qLock` | Read the map and queue while they are protected |
+| `ReadyQueue.wakeAll()` | `qLock` | Protect `done` so the shutdown signal is sent once |
+| `contextSwitchCount` in `incrementContextSwitch()` and `getContextSwitchCount()` | `statLock` | Prevent lost updates and protect reads |
+| `completedProcessCount` in `incrementCompletedProcess()` and `getCompletedProcessCount()` | `statLock` | Keep the count correct when workers finish together |
+| `totalServiceTime` in `addServiceTime()` and `getTotalServiceTime()` | `statLock` | Protect the sum while it is read or updated |
 
 ## Question 3: Busy Waiting vs Semaphore
 
@@ -380,7 +394,7 @@ Verification block of **my final version**:
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+The starter checked the empty queue 897 times and slept for 20 ms between checks, causing repeated wakeups. During normal scheduling the `ready` permits represent jobs available for a worker to claim. It starts at 0 because the queue is empty and reaches 13 after all 13 jobs are added before the workers start. The final run had zero empty queue polls because workers block in `awaitReady()` when no permit is available. When the last job finishes, `wakeAll()` releases one permit per CPU so waiting workers can wake up and exit instead of staying blocked.
 
 ## Question 4: Classical Problems and Deadlock
 
@@ -391,24 +405,24 @@ Verification block of **my final version**:
 **Your Answer:** *(3-5 sentences)*
 
 **Classical problem and roles**:
-[Name the problem; who is the producer, who is the consumer?]
+This is the producer-consumer problem. The main thread produces the first jobs and the CPU workers consume them, then act as producers when they put unfinished jobs back.
 
 **Semaphores for a bounded queue (name and initial value)**:
-[Name the three semaphores and their initial values.]
+For a queue with capacity `K` the semaphores start at `empty = K`, `full = 0`, and `mutex = 1`.
 
 **Deadlock scenario and prevention**:
-[Describe the scenario and the necessary condition you would break.]
+If the queue is full and a producer holds `mutex` while waiting for `empty`, a consumer cannot get `mutex` to free a slot. Waiting for `empty` or `full` before taking `mutex` breaks that circular wait.
 
 ## Summary
 
 **Key concepts I understood through these questions:**
-1.
-2.
-3.
+1. Use the same lock to read and update shared data
+2. Use a semaphore to wait for work in an empty queue
+3. Wait for a permit before taking the queue lock
 
 **Concepts I need to study more:**
-1.
-2.
+1. Fair locks and bounded waiting
+2. Deadlock prevention with multiple locks
 
 ---
 
