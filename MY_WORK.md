@@ -32,11 +32,11 @@
 
 | Field | Your Answer |
 |-------|-------------|
-| **Full Name** | [Write your full name here] |
-| **Student ID** | [Write your student ID here] |
-| **University Email** | [yourid]@std.psau.edu.sa |
-| **GitHub Username** | [your-github-username] |
-| **Repository Link** | [Paste your repository link here] |
+| **Full Name** | Bandar Fahad Aldawsari |
+| **Student ID** | 446540011 |
+| **University Email** | 446540011@std.psau.edu.sa |
+| **GitHub Username** | bandar-fahad-446 |
+| **Repository Link** | https://github.com/bandar-fahad-446/OS-Assignment3-bandar-fahad |
  
 ---
 
@@ -79,7 +79,7 @@
 
 | # | Commit | Example message |
 |:-:|--------|-----------------|
-| 1 | Student ID set | `Set my student ID: 441234567` |
+| 1 | Student ID set | `Set my student ID: 446540011` |
 | 2 | Feature 1: Ready queue lock | `Feature 1: Protected the ready queue with a ReentrantLock` |
 | 3 | Feature 2: Statistics locks | `Feature 2: Added locks to the shared statistics counters` |
 | 4 | Feature 3: Semaphore | `Feature 3: Replaced busy waiting with a counting semaphore` |
@@ -117,10 +117,10 @@
 
 **Details**:
 - Forked the starter repository and renamed it
-- Changed student ID on line 304 to my actual ID (441234567)
+- Changed student ID on line 304 to my actual ID (446540011)
 - Ran the original program: 4 CPUs started, three of them picked `P1`, then `IllegalThreadStateException` and the watchdog stopped the program
 - Saved the output in a text file for Question 1
-- Committed and pushed: `Set my student ID: 441234567`
+- Committed and pushed: `Set my student ID: 446540011`
 
 **Challenges**: I did not understand why the same process was picked by three CPUs
 
@@ -132,68 +132,80 @@
 
 ## Your Development Log
 
-### Entry 1 - [Date and Time]
-**What I did**:
+The session times and the time spent are estimates
+
+### Entry 1 - 09-11-2026 10:30 PM
+**What I did**: Opened the project in VS Code
 
 **Details**:
+- Cloned my GitHub fork
+- Saved the first student ID change in Git
 
-**Challenges**:
+**Challenges**: The first number had an extra digit
 
-**Solution**:
+**Solution**: Checked the number and used 446540011 before the starter run
 
-**Time spent**:
+**Time spent**: 1 hour
 
 ---
 
-### Entry 2 - [Date and Time]
-**What I did**:
+### Entry 2 - 13-11-2026 2:10 PM
+**What I did**: Ran the starter and added a lock to the queue
 
 **Details**:
+- Saved the starter results for later comparison
+- The starter finished 12 out of 13 jobs
 
-**Challenges**:
+**Challenges**: Two workers picked P1 at the same time
 
-**Solution**:
+**Solution**: Used one lock for the queue and all 13 jobs finished in the next test
 
-**Time spent**:
+**Time spent**: 1.5 hours
 
 ---
 
-### Entry 3 - [Date and Time]
-**What I did**:
+### Entry 3 - 13-11-2026 7:00 PM
+**What I did**: Added a lock for the shared statistics
 
 **Details**:
+- Used one lock for all three statistics to prevent lost updates
+- Used it every time the program reads or changes these values
 
-**Challenges**:
+**Challenges**: The totals could still be wrong after fixing the queue
 
-**Solution**:
+**Solution**: Tested the statistics again and the first three checks passed
 
-**Time spent**:
+**Time spent**: 3 hours
 
 ---
 
-### Entry 4 - [Date and Time]
-**What I did**:
+### Entry 4 - 14-11-2026 12:50 AM
+**What I did**: Added a semaphore so workers could wait for jobs
 
 **Details**:
+- Started the semaphore at zero
+- Gave it one permit for each job added to the queue
 
-**Challenges**:
+**Challenges**: Some workers could still be waiting when the last job finished
 
-**Solution**:
+**Solution**: Woke the waiting workers so they could exit
 
-**Time spent**:
+**Time spent**: 1.5 hours
 
 ---
 
-### Entry 5 - [Date and Time]
-**What I did**:
+### Entry 5 - 14-11-2026 1:00 PM
+**What I did**: Ran the final version and saved the results
 
 **Details**:
+- All 13 jobs finished
+- The poll count was zero and all four checks passed
 
-**Challenges**:
+**Challenges**: The Run button in VS Code got stuck
 
-**Solution**:
+**Solution**: Ran the program directly with Java
 
-**Time spent**:
+**Time spent**: 1 hour
 
 ---
 
@@ -214,13 +226,13 @@
 
 > 💡 **TIP:** Fill this in **last**, after all entries are written.
 
-**Total time spent on assignment**: [X hours]
+**Total time spent on assignment**: 8 hours
 
-**Most challenging part**:
+**Most challenging part**: Getting all the workers to stop at the end
 
-**Most interesting learning**:
+**Most interesting learning**: The queue and the statistics needed separate locks
 
-**What I would do differently next time**:
+**What I would do differently next time**: Save the test results after every change
 
 ---
 
@@ -240,7 +252,15 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+The first run showed two workers picking P1,
+
+This was a race condition because they could both read the same job before either removed it,
+
+A lock lets only one worker change the queue at a time,
+
+I also learned that reading and updating each counter need the same lock,
+
+The semaphore lets workers wait when the queue is empty,
 
 ## Question 2: What was the most challenging part of this assignment?
 
@@ -248,7 +268,15 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+The hardest part was getting all the workers to stop,
+
+The queue can be empty while a worker is still doing a job,
+
+That job can go back into the queue if it needs more time,
+
+After the last job finishes no new jobs will arrive,
+
+The final signal wakes the waiting workers so they can exit,
 
 ## Question 3: How did you overcome the challenges you faced?
 
@@ -256,7 +284,15 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+I checked the starter output and saw two workers pick the same job,
+
+I tested the queue lock and saw all 13 jobs finish,
+
+After adding the statistics lock I checked that the first three totals matched,
+
+Then I tested the semaphore and saw zero empty queue polls,
+
+All four checks passed in the final run,
 
 ## Question 4: Where can synchronization concepts be applied in real-world applications?
 
@@ -264,7 +300,15 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+A print queue can use the same idea,
+
+Many people can add print jobs to one queue,
+
+A lock stops two workers from taking the same job,
+
+A semaphore lets a worker wait until someone adds a job,
+
+A ticket website can also use a lock to stop two people from booking the same seat,
 
 ### Optional: What would you like to learn more about?
 
